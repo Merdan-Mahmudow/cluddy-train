@@ -6,6 +6,7 @@
 
 Создайте файл run-project.ps1 в корне вашего проекта с таким содержимым:
 
+```powershell
 # 1. Запуск сборки CSS с помощью Tailwind CSS
 npm run build:css
 
@@ -14,33 +15,41 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", "npm run watch:css
 
 # 3. Запуск проекта ASP.NET
 dotnet run
+```
 ### 2. Настройка проекта
 
 1. **Обновление package.json для добавления команд сборки и наблюдения:**
 
 Убедитесь, что у вас есть следующие скрипты в package.json:
 
+```json
 "scripts": {
   "build:css": "npx tailwindcss -i ./src/styles.css -o ./wwwroot/css/styles.css --minify",
   "watch:css": "npx tailwindcss -i ./src/styles.css -o ./wwwroot/css/styles.css --watch"
 }
+```
 ###Запуск автоматизированного процессаса**
 
 Для запуска скрипта откройте PowerShell и выполните:
 
+```powershell
 .\run-project.ps1
+```
 ###Дополнительно: Создание одной команды для всех процессовов**
 
 Чтобы сделать процесс еще проще, вы можете добавить сценарий для запуска run-project.ps1 в package.json. Это позволит запускать все с помощью одной команды npm.
 
 В package.json добавьте следующий скрипт:
-
+```json
 "scripts": {
   "start": "powershell -ExecutionPolicy Bypass -File ./run-project.ps1"
 }
+```
 Теперь, чтобы собрать стили и запустить проект, вы можете использовать одну команду:
 
+```bash
 npm start
+```
 ###Запуск проектата**
 
 Запуск команды npm start выполнит следующие действия:
