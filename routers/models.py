@@ -28,7 +28,7 @@ async def all_models(session: AsyncSession = Depends(get_async_session)):
 @modelRouter.get('/filter/{type}')
 async def filetring(
 	type: int, 
-	city: str = None, 
+	city: str = "", 
 	from_price: int = None, 
 	to_price: int = None, 
 	from_age: int = None, 
@@ -65,7 +65,21 @@ async def filetring(
 		result = await session.execute(query)
 		return result.mappings().all()
 	elif type == 0:
-		query = select(Model).where(Model.city == city, Model.age >= from_age, Model.age <= to_age, Model.chest >= from_chest, Model.chest <= to_chest, Model.weight >= from_weight, Model.weight <= to_weight, Model.height >= from_height, Model.height <= to_height)
+		model = {
+			"city": city,
+			"from_age": from_age,
+			"to_age": to_age,
+			"from_chest": from_chest,
+			"to_chest": to_chest,
+			"from_weight": from_weight,
+			"to_weight": to_weight,
+			"from_height": from_height,
+			"to_height": to_height,
+		}
+		for el in model:
+			if model[el] is None:
+				del model[el]
+		query = select(Model).where(Model.city == model.city, Model.age >= model.from_age, Model.age <= model.to_age, Model.chest >= model.from_chest, Model.chest <= model.to_chest, Model.weight >= model.from_weight, Model.weight <= model.to_weight, Model.height >= model.from_height, Model.height <= model.to_height)
 		result = await session.execute(query)
 		return result.mappings().all()
 

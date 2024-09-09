@@ -14,8 +14,8 @@ s3 = session.client(
 
 ## Из строки
 
-# def put_object(Key):
-#     s3.put_object(Bucket='cluddy-bucket', Key=Key, Body='TEST', StorageClass='COLD')
+def put_object(Key):
+    s3.put_object(Bucket='cluddy-bucket', Key=Key, Body='TEST', StorageClass='COLD')
 
 # ## Из файла
 def upload_file_to_s3():
