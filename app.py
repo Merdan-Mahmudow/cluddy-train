@@ -1,7 +1,6 @@
 from fastapi import FastAPI
+from routers.routers import router
 
 app = FastAPI()
 
-@app.get("/test")
-async def test():
-	return "Something is wrong"
+app.include_router(router)
