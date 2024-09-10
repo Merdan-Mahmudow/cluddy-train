@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
+import io
+from typing import List
+import uuid
 import boto3
+from fastapi import UploadFile
+from botocore.exceptions import NoCredentialsError
+
 session = boto3.session.Session()
 s3 = session.client(
     service_name='s3',
@@ -17,13 +23,37 @@ s3 = session.client(
 def put_object(Key):
     s3.put_object(Bucket='cluddy-bucket', Key=Key, Body='TEST', StorageClass='COLD')
 
+
+
 # ## Из файла
-def upload_file_to_s3():
-    s3.upload_file('this_script.py', 'cluddy-bucket', 'py_script.py')
+async def upload_file_to_s3(file: List[UploadFile]):
+	uploded_files = []
+	filenames = []
+	file_urls = []
+	for f in file:
+		file_content = await f.read()
+		f.filename = str(uuid.uuid4()) + ".jpg"
+		filenames.append(f.filename)
+		s3.upload_fileobj(
+			Fileobj=io.BytesIO(file_content),
+			Bucket='cluddy-bucket',
+			Key=f.filename
+		)
+		uploded_files.append({"filename": f.filename, "status": "uploaded"})
+	async def get_url_from_s3(files: List[str]):
+		for f in files:
+			url = s3.generate_presigned_url(
+				ClientMethod='get_object',
+				Params={'Bucket': 'cluddy-bucket', 'Key': f}
+			)
+			file_urls.append({"filename": f, "url": url})
+		return file_urls		
+	return await get_url_from_s3(filenames)
+
 
 # Получить список объектов в бакете
-for key in s3.list_objects(Bucket='cluddy-bucket')["Contents"]:
-    print(key)
+# for key in s3.list_objects(Bucket='cluddy-bucket')["Contents"]:
+#     print(key)
 
 # # Удалить несколько объектов
 # forDeletion = [{'Key':'object_name'}, {'Key':'script/py_script.py'}]

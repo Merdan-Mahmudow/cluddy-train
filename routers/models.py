@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, UploadFile
+from typing import List, Optional
+from fastapi import APIRouter, Depends, File, UploadFile
 from sqlalchemy import delete, insert, select
 from db.db import get_async_session
 from models.models import Model
 from schemas import schemas as DTO
 from sqlalchemy.ext.asyncio import AsyncSession
-from .s3 import put_object
+from .s3 import put_object, upload_file_to_s3
 
 
 
@@ -12,12 +13,37 @@ from .s3 import put_object
 modelRouter = APIRouter()
 
 @modelRouter.post('/')
-async def model_add(img: UploadFile, session: AsyncSession = Depends(get_async_session)):
-	put_object(img.filename)
-	# stmt = insert(Model).values(modelDTO.model_dump())
-	# await session.execute(stmt)
-	# await session.commit()
-	return img
+async def model_add(
+	name: Optional[str] = None,
+    age: Optional[int] = None,
+    city: Optional[str] = None,
+    weight: Optional[int] = None,
+    height: Optional[int] = None,
+    chest: Optional[int] = None,
+    phone: Optional[str] = None,
+    cloth: Optional[str] = None,
+    shoes: Optional[int] = None,
+    hair: Optional[str] = None,
+    appereance: Optional[str] = None,
+    day_1_hour: Optional[int] = None,
+    day_2_hour: Optional[int] = None,
+    night_1_hour: Optional[int] = None,
+    night_all: Optional[int] = None,
+	img: List[UploadFile] = File(...), 
+	session: AsyncSession = Depends(get_async_session)):
+	images = await upload_file_to_s3(img)
+	img_urls = []
+	for image in images:
+		img_urls.append(image["url"])
+	print(img_urls)
+	stmt = insert(Model).values(img=img_urls, name=name, age=age, city=city, weight=weight, height=height, chest=chest, phone=phone, cloth=cloth, shoes=shoes, hair=hair, appereance=appereance, day_1_hour=day_1_hour, day_2_hour=day_2_hour, night_1_hour=night_1_hour, night_all=night_all)
+	await session.execute(stmt)
+	await session.commit()
+	return "added succesfully"
+
+@modelRouter.put('/')
+async def file_upload(file: List[UploadFile] = File(...)):
+	return await upload_file_to_s3(file)
 
 @modelRouter.get('/')
 async def all_models(session: AsyncSession = Depends(get_async_session)):
@@ -25,63 +51,56 @@ async def all_models(session: AsyncSession = Depends(get_async_session)):
 	result = await session.execute(query)
 	return result.mappings().all()
 
-@modelRouter.get('/filter/{type}')
-async def filetring(
-	type: int, 
-	city: str = "", 
-	from_price: int = None, 
-	to_price: int = None, 
-	from_age: int = None, 
-	to_age: int = None, 
-	from_chest: int = None, 
-	to_chest: int = None, 
-	from_weight: int = None, 
-	to_weight: int = None, 
-	from_height: int = None, 
-	to_height: int = None, 
+
+@modelRouter.get('/filter/')
+async def filtering(
+	#type: int, 
+	city: Optional[str] = None, 
+	#from_price: Optional[int] = None, 
+	#to_price: Optional[int] = None, 
+	from_age: Optional[int] = None, 
+	to_age: Optional[int] = None, 
+	from_chest: Optional[int] = None, 
+	to_chest: Optional[int] = None, 
+	from_weight: Optional[int] = None, 
+	to_weight: Optional[int] = None, 
+	from_height: Optional[int] = None, 
+	to_height: Optional[int] = None, 
 	session: AsyncSession = Depends(get_async_session)):
-	if type == 1:
-		query = select(Model).where(Model.city == city)
-		result = await session.execute(query)
-		return result.mappings().all()
-	# elif type == 2:
-	# 	query = select(Model).where(Model.price >= from_price, Model.price <= to_price)
-	# 	result = await session.execute(query)
-	# 	return result.mappings().all()
-	elif type == 3:
-		query = select(Model).where(Model.age >= from_age, Model.age <= to_age)
-		result = await session.execute(query)
-		return result.mappings().all()
-	elif type == 4:
-		query = select(Model).where(Model.chest >= from_chest, Model.chest <= to_chest)
-		result = await session.execute(query)
-		return result.mappings().all()
-	elif type == 5:
-		query = select(Model).where(Model.weight >= from_weight, Model.weight <= to_weight)
-		result = await session.execute(query)
-		return result.mappings().all()
-	elif type == 6:
-		query = select(Model).where(Model.height >= from_weight, Model.whight <= to_weight)
-		result = await session.execute(query)
-		return result.mappings().all()
-	elif type == 0:
-		model = {
-			"city": city,
-			"from_age": from_age,
-			"to_age": to_age,
-			"from_chest": from_chest,
-			"to_chest": to_chest,
-			"from_weight": from_weight,
-			"to_weight": to_weight,
-			"from_height": from_height,
-			"to_height": to_height,
-		}
-		for el in model:
-			if model[el] is None:
-				del model[el]
-		query = select(Model).where(Model.city == model.city, Model.age >= model.from_age, Model.age <= model.to_age, Model.chest >= model.from_chest, Model.chest <= model.to_chest, Model.weight >= model.from_weight, Model.weight <= model.to_weight, Model.height >= model.from_height, Model.height <= model.to_height)
-		result = await session.execute(query)
-		return result.mappings().all()
+	
+	query = select(Model)
+
+	if city:
+		query = query.where(Model.city == city)
+	
+	#if from_price:
+	#	query = query.where(Model.price >= from_price)
+	#if to_price:
+	#	query = query.where(Model.price <= to_price)
+	
+	if from_age:
+		query = query.where(Model.age >= from_age)
+	if to_age:
+		query = query.where(Model.age <= to_age)
+	
+	if from_chest:
+		query = query.where(Model.chest >= from_chest)
+	if to_chest:
+		query = query.where(Model.chest <= to_chest)
+	
+	if from_weight:
+		query = query.where(Model.weight >= from_weight)
+	if to_weight:
+		query = query.where(Model.weight <= to_weight)
+	
+	if from_height:
+		query = query.where(Model.height >= from_height)
+	if to_height:
+		query = query.where(Model.height <= to_height)
+	
+	result = await session.execute(query)
+	return result.mappings().all()
+
 
 @modelRouter.delete("/{id}")
 async def delete_model(id: int, session: AsyncSession = Depends(get_async_session)):
