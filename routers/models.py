@@ -1,14 +1,11 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, File, UploadFile
-from sqlalchemy import delete, insert, select
+from sqlalchemy import delete, insert, select, update
 from db.db import get_async_session
 from models.models import Model
 from schemas import schemas as DTO
 from sqlalchemy.ext.asyncio import AsyncSession
-from .s3 import put_object, upload_file_to_s3
-
-
-
+from .s3 import get_url, upload_file_to_s3
 
 modelRouter = APIRouter()
 
@@ -31,20 +28,39 @@ async def model_add(
     night_all: Optional[int] = None,
 	img: List[UploadFile] = File(...), 
 	session: AsyncSession = Depends(get_async_session)):
-	images = await upload_file_to_s3(img)
+	images = await get_url(img)
 	img_urls = []
 	for image in images:
-		img_urls.append(image["url"])
+		img_urls.append(image)
 	print(img_urls)
 	stmt = insert(Model).values(img=img_urls, name=name, age=age, city=city, weight=weight, height=height, chest=chest, phone=phone, cloth=cloth, shoes=shoes, hair=hair, appereance=appereance, day_1_hour=day_1_hour, day_2_hour=day_2_hour, night_1_hour=night_1_hour, night_all=night_all)
 	await session.execute(stmt)
 	await session.commit()
 	return "added succesfully"
 
+@modelRouter.patch('/')
+async def model_img_update(
+	id: int,
+	img: List[UploadFile] = File(...),
+	session: AsyncSession = Depends(get_async_session)):
+	images = await get_url(img)
+	img_urls = []
+	for image in images:
+		img_urls.append(image)
+	query = update(Model).where(Model.id == id).values(img=img_urls)
+	await session.execute(query)
+	await session.commit()
+	return img_urls
+
 @modelRouter.put('/')
 async def file_upload(file: List[UploadFile] = File(...)):
 	return await upload_file_to_s3(file)
 
+@modelRouter.get('/{id}')
+async def search_model_from_id(id: int, session: AsyncSession = Depends(get_async_session)):
+	query = select(Model).where(Model.id == id)
+	result = await session.execute(query)
+	return result.mappings().all()
 @modelRouter.get('/')
 async def all_models(session: AsyncSession = Depends(get_async_session)):
 	query = select(Model)

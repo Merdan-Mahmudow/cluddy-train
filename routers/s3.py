@@ -18,12 +18,27 @@ s3 = session.client(
 
 # # Загрузить объекты в бакет
 
-## Из строки
-
 def put_object(Key):
     s3.put_object(Bucket='cluddy-bucket', Key=Key, Body='TEST', StorageClass='COLD')
 
-
+async def get_url(file: List[UploadFile]):
+	uploded_files = []
+	filenames = []
+	file_urls = []
+	for f in file:
+		file_content = await f.read()
+		f.filename = str(uuid.uuid4()) + ".jpg"
+		filenames.append(f.filename)
+		s3.upload_fileobj(
+			Fileobj=io.BytesIO(file_content),
+			Bucket='cluddy-bucket',
+			Key=f.filename
+		)
+		uploded_files.append({"filename": f.filename, "status": "uploaded"})
+	async def get(img_url):
+		return ["https://storage.yandexcloud.net/cluddy-bucket/" + uploded_files[f]["filename"] for f in range(len(uploded_files))]
+	return await get(filenames)
+		
 
 # ## Из файла
 async def upload_file_to_s3(file: List[UploadFile]):
