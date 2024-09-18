@@ -25,4 +25,14 @@ class Model(Base):
 	night_all = Column(Integer, nullable=True)
 
 
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    name = Column(String)
+    chatID = Column(String)
+    phone = Column(String)
+
+
+
 	

@@ -1,0 +1,27 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "docker",
+			"type": "shell",
+			"command": "docker start cluddy"
+		},
+		{
+			"label": "cluddy",
+			"type": "shell",
+			"command": "cd ~/cluddy-train && source ./venv/bin/activate && python main.py"
+		},
+		{
+			"label": "front",
+			"type": "shell",
+			"command": "cd ~/WHORE_BOT/ && npm start"
+		},
+		{
+			"label": "bot",
+			"type": "shell",
+			"command": "cd ~/cluddy-bot && source ./venv/bin/activate && python main.py"
+		}
+	]
+}

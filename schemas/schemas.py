@@ -21,3 +21,14 @@ class Model(BaseModel):
     night_all: Optional[int] = None
     class Config:
         from_attributes = True
+        
+
+
+class User(BaseModel):
+    username: str
+    name: str
+    chatID: str
+    phone: str
+    
+    class Config:
+        from_attributes = True
