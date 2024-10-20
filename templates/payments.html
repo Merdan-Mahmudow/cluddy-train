@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://api.cryptocloud.plus/static/widget/v2/css/app.css" rel="stylesheet">
+	<script src="https://telegram.org/js/telegram-web-app.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/axios.min.js" integrity="sha512-DdX/YwF5e41Ok+AI81HI8f5/5UsoxCVT9GKYZRIzpLxb8Twz4ZwPPX+jQMwMhNQ9b5+zDEefc+dcvQoPWGNZ3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<title>Оплата услуг</title>
+</head>
+<style>
+	*{
+		margin: 0;
+		padding: 0;
+		box-sizing: border-box;
+		overflow: hidden;
+	}
+	iframe{
+		width: 100vw;
+		height: 100vh;
+	}
+</style>
+<body>
+	
+<iframe src="{{data.link}}" frameborder="0" class="pay"></iframe>
+
+<div class="success" style="display: none;">
+	<iframe src="https://cluddy.angels-agency.ru/success-pay" frameborder="0"></iframe>
+</div>
+
+</body>
+<script>
+const iframe = document.querySelector(".pay")
+const success = document.querySelector(".success")
+let paymentNotified = false;
+
+setInterval(() => {
+  axios.get("https://backend.angels-agency.ru/payment/payment_status?invoice_id={{ data.uuid }}")
+    .then(function (response) {
+      let status = response.data.result[0].status
+      console.log(status)
+      switch (status) {
+        case "paid":
+          iframe.style.display = "none"
+          success.style.display = "flex"
+          
+          // Проверяем флаг перед отправкой сообщения
+          if (!paymentNotified) {
+            axios.get("https://api.telegram.org/bot7346195300:AAH9_o7rXqB6zldGTtcB_J17-PLDMRX5sxA/sendMessage?chat_id={{ user.chatId }}&text=Скоро к вам подъедет:%0A{{ model.name }}%0AВозраст: {{ model.age }} лет%0AРазмер груди: {{ model.chest}}%0AРост: {{ model.height }} см%0AВес: {{ model.weight }} кг%0AЦена: {{ model.priceAllNight }}₽")
+            axios.get("https://api.telegram.org/bot7933769477:AAF3_dmy6dQPq0jkGrZR9jArhLndVw8tVos/sendMessage?chat_id={{ user.adminChatId }}&text=Пользователь заказал:%0A{{ model.name }}%0AВозраст: {{ model.age }} лет%0AРазмер груди: {{ model.chest}}%0AРост: {{ model.height }} см%0AВес: {{ model.weight }} кг%0AЦена: {{ model.priceAllNight }}₽")
+            paymentNotified = true; // Меняем значение флага после отправки
+          }
+
+          setTimeout(function () {
+            window.Telegram.WebApp.close()
+            window.close()
+          }, 5000)
+          break;
+        case "overpaid":
+		iframe.style.display = "none"
+          success.style.display = "flex"
+          
+          // Проверяем флаг перед отправкой сообщения
+          if (!paymentNotified) {
+            axios.get("https://api.telegram.org/bot7346195300:AAH9_o7rXqB6zldGTtcB_J17-PLDMRX5sxA/sendMessage?chat_id={{ user.chatId }}&text=Скоро к вам подъедет:%0A{{ model.name }}%0AВозраст: {{ model.age }} лет%0AРазмер груди: {{ model.chest}}%0AРост: {{ model.height }} см%0AВес: {{ model.weight }} кг%0AЦена: {{ model.priceAllNight }}₽")
+            axios.get("https://api.telegram.org/bot7933769477:AAF3_dmy6dQPq0jkGrZR9jArhLndVw8tVos/sendMessage?chat_id={{ user.adminChatId }}&text=Пользователь заказал:%0A{{ model.name }}%0AВозраст: {{ model.age }} лет%0AРазмер груди: {{ model.chest}}%0AРост: {{ model.height }} см%0AВес: {{ model.weight }} кг%0AЦена: {{ model.priceAllNight }}₽")
+            paymentNotified = true; // Меняем значение флага после отправки
+          }
+
+          setTimeout(function () {
+            window.Telegram.WebApp.close()
+            window.close()
+          }, 5000)
+          break;
+      }
+    })
+}, 15000)
+
+</script>
+<script src="https://api.cryptocloud.plus/static/widget/v2/js/app.js"></script>
+</html>
